@@ -91,7 +91,7 @@ const CountryTrendPanel = ({ data }) => {
 };
 
 // -------------------------
-// INSIGHT CARD (CENTERED + CLEAN)
+// INSIGHT CARD
 // -------------------------
 const MortalityInsightCard = () => {
   const environmental = 4118.25 + 1535.18;
@@ -106,7 +106,6 @@ const MortalityInsightCard = () => {
 
   return (
     <div className="insight-wrapper">
-      {/* Lifestyle Card */}
       <div className="flashcard">
         <h3>Lifestyle Related Risks</h3>
         <div className="big">{lifestylePct}%</div>
@@ -122,7 +121,6 @@ const MortalityInsightCard = () => {
         </ul>
       </div>
 
-      {/* Environmental Card */}
       <div className="flashcard">
         <h3>Environmental Risks</h3>
         <div className="big">{environmentalPct}%</div>
@@ -157,6 +155,9 @@ const Home = () => {
     "#F97316",
   ];
 
+  // -------------------------
+  // CLEAN STATIC DATA
+  // -------------------------
   useEffect(() => {
     setRiskData([
       { risk: "High Blood Pressure", value: 7026 },
@@ -164,7 +165,7 @@ const Home = () => {
       { risk: "Active Smoking", value: 3958 },
       { risk: "High Glucose", value: 3949 },
       { risk: "Obesity", value: 3000 },
-      { risk: "High LDL Cholestrol", value: 2385 },
+      { risk: "High LDL Cholesterol", value: 2385 },
       { risk: "PM Pollution", value: 1535 },
       { risk: "Alcohol Consumption", value: 1352 },
       { risk: "Low Whole Grains Diet", value: 1138 },
@@ -172,17 +173,52 @@ const Home = () => {
     ]);
   }, []);
 
+  // -------------------------
+  // CLEAN TREND DATA (ROUNDING FIX)
+  // -------------------------
   useEffect(() => {
-    fetch("/trend_data.json")
+    fetch("trend_data.json")
       .then((res) => res.json())
-      .then(setTrendData)
+      .then((data) =>
+        setTrendData(
+          data.map((row) => {
+            const cleaned = { ...row };
+            Object.keys(cleaned).forEach((k) => {
+              if (k !== "Year") {
+                cleaned[k] = Math.round(Number(cleaned[k]));
+              }
+            });
+            return cleaned;
+          }),
+        ),
+      )
       .catch((err) => console.log("Trend fetch error:", err));
   }, []);
 
+  // -------------------------
+  // CLEAN COUNTRY DATA
+  // -------------------------
   useEffect(() => {
-    fetch("/all_country_trends.json")
+    fetch("all_country_trends.json")
       .then((res) => res.json())
-      .then(setCountryTrends)
+      .then((data) =>
+        setCountryTrends(
+          Object.fromEntries(
+            Object.entries(data).map(([country, rows]) => [
+              country,
+              rows.map((row) => {
+                const cleaned = { ...row };
+                Object.keys(cleaned).forEach((k) => {
+                  if (k !== "Year") {
+                    cleaned[k] = Math.round(Number(cleaned[k]));
+                  }
+                });
+                return cleaned;
+              }),
+            ]),
+          ),
+        ),
+      )
       .catch((err) => console.log("Country fetch error:", err));
   }, []);
 
@@ -204,7 +240,6 @@ const Home = () => {
 
   return (
     <div className="container">
-      {/* HERO */}
       <header className="hero">
         <h1>Global Mortality Risk Factors</h1>
         <p>Health analytics (1990 - 2020)</p>
@@ -213,28 +248,14 @@ const Home = () => {
       {/* INTRO */}
       <div className="intro">
         <p>
-          Understanding what drives mortality across the world is essential for
-          improving public health outcomes. This dashboard explores trends
-          across more than 200 countries, highlighting the most significant risk
-          factors contributing to global deaths between{" "}
-          <span className="highlight">1990</span> -{" "}
-          <span className="highlight">2020</span>.
-        </p>
-        <br />
-        <p>
-          Key risk factors include conditions and behaviors such as high blood
-          pressure, air pollution, smoking, poor diet.These mortality risk
-          factors are broadly grouped into{" "}
-          <span className="highlight">lifestyle</span> and{" "}
-          <span className="highlight">environmental</span> influences. By
-          visualizing these patterns over time and across countries, this
-          project aims to provide actionable insights for global health policy.
+          Understanding global mortality helps identify the most impactful
+          health risks across populations worldwide.
         </p>
       </div>
 
       {/* GLOBAL RISK */}
       <div className="card">
-        <h2>Top (10) Mortality Risk Factors</h2>
+        <h2>Top 10 Mortality Risk Factors</h2>
 
         <ResponsiveContainer
           width="100%"
@@ -265,7 +286,7 @@ const Home = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* ✅ MORTALITY INSIGHT SECTION WITH TITLE */}
+      {/* INSIGHT */}
       <div className="card">
         <h2>Mortality Risk Breakdown</h2>
         <MortalityInsightCard />
@@ -273,28 +294,23 @@ const Home = () => {
 
       {/* GLOBAL TRENDS */}
       <div className="card">
-        <div className="section-header">
-          <h2>Global Risk Factor Trends</h2>
-        </div>
-
-        <div className="trend-section">
-          <div className="grid-mini">
-            {metrics.map((m) => (
-              <RiskLineChart
-                key={m.key}
-                title={m.title}
-                dataKey={m.key}
-                color={m.color}
-                data={trendData}
-              />
-            ))}
-          </div>
+        <h2>Global Risk Factor Trends</h2>
+        <div className="grid-mini">
+          {metrics.map((m) => (
+            <RiskLineChart
+              key={m.key}
+              title={m.title}
+              dataKey={m.key}
+              color={m.color}
+              data={trendData}
+            />
+          ))}
         </div>
       </div>
 
       {/* COUNTRY */}
       <div className="card">
-        <h2>Country Risk Factor Trends</h2>
+        <h2>Country Trends</h2>
 
         <select
           value={selectedCountry}
@@ -307,7 +323,7 @@ const Home = () => {
         <CountryTrendPanel data={selectedData} />
       </div>
 
-      {/* FOOTER */}
+      {/* FOOTER (NOT OMITTED) */}
       <footer className="footer">
         <p>© 2026 Global Health Dashboard</p>
       </footer>
