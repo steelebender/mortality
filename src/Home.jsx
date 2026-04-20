@@ -13,6 +13,22 @@ import {
 import "./Home.css";
 
 // -------------------------
+// HELPER: ROUND JSON VALUES
+// -------------------------
+const roundData = (data) => {
+  if (!Array.isArray(data)) return data;
+
+  return data.map((item) => {
+    const newItem = {};
+    Object.keys(item).forEach((key) => {
+      const value = item[key];
+      newItem[key] = typeof value === "number" ? Math.round(value) : value;
+    });
+    return newItem;
+  });
+};
+
+// -------------------------
 // REUSABLE LINE CHART
 // -------------------------
 const RiskLineChart = ({ title, dataKey, color, data = [] }) => {
@@ -94,10 +110,11 @@ const CountryTrendPanel = ({ data }) => {
 // INSIGHT CARD
 // -------------------------
 const MortalityInsightCard = () => {
-  const environmental = 4118.25 + 1535.18;
+  const environmental = Math.round(4118.25 + 1535.18);
 
-  const lifestyle =
-    7026.15 + 3957.62 + 3948.9 + 3000.33 + 2385.26 + 1352.14 + 1137.9 + 807.44;
+  const lifestyle = Math.round(
+    7026.15 + 3957.62 + 3948.9 + 3000.33 + 2385.26 + 1352.14 + 1137.9 + 807.44,
+  );
 
   const total = lifestyle + environmental;
 
@@ -155,9 +172,6 @@ const Home = () => {
     "#F97316",
   ];
 
-  // -------------------------
-  // CLEAN STATIC DATA
-  // -------------------------
   useEffect(() => {
     setRiskData([
       { risk: "High Blood Pressure", value: 7026 },
@@ -165,7 +179,7 @@ const Home = () => {
       { risk: "Active Smoking", value: 3958 },
       { risk: "High Glucose", value: 3949 },
       { risk: "Obesity", value: 3000 },
-      { risk: "High LDL Cholesterol", value: 2385 },
+      { risk: "High LDL Cholestrol", value: 2385 },
       { risk: "PM Pollution", value: 1535 },
       { risk: "Alcohol Consumption", value: 1352 },
       { risk: "Low Whole Grains Diet", value: 1138 },
@@ -174,51 +188,28 @@ const Home = () => {
   }, []);
 
   // -------------------------
-  // CLEAN TREND DATA (ROUNDING FIX)
+  // ROUND trend_data.json
   // -------------------------
   useEffect(() => {
     fetch("trend_data.json")
       .then((res) => res.json())
-      .then((data) =>
-        setTrendData(
-          data.map((row) => {
-            const cleaned = { ...row };
-            Object.keys(cleaned).forEach((k) => {
-              if (k !== "Year") {
-                cleaned[k] = Math.round(Number(cleaned[k]));
-              }
-            });
-            return cleaned;
-          }),
-        ),
-      )
+      .then((data) => setTrendData(roundData(data)))
       .catch((err) => console.log("Trend fetch error:", err));
   }, []);
 
   // -------------------------
-  // CLEAN COUNTRY DATA
+  // ROUND all_country_trends.json
   // -------------------------
   useEffect(() => {
     fetch("all_country_trends.json")
       .then((res) => res.json())
-      .then((data) =>
-        setCountryTrends(
-          Object.fromEntries(
-            Object.entries(data).map(([country, rows]) => [
-              country,
-              rows.map((row) => {
-                const cleaned = { ...row };
-                Object.keys(cleaned).forEach((k) => {
-                  if (k !== "Year") {
-                    cleaned[k] = Math.round(Number(cleaned[k]));
-                  }
-                });
-                return cleaned;
-              }),
-            ]),
-          ),
-        ),
-      )
+      .then((data) => {
+        const rounded = {};
+        Object.keys(data).forEach((country) => {
+          rounded[country] = roundData(data[country]);
+        });
+        setCountryTrends(rounded);
+      })
       .catch((err) => console.log("Country fetch error:", err));
   }, []);
 
@@ -245,17 +236,15 @@ const Home = () => {
         <p>Health analytics (1990 - 2020)</p>
       </header>
 
-      {/* INTRO */}
       <div className="intro">
         <p>
-          Understanding global mortality helps identify the most impactful
-          health risks across populations worldwide.
+          Understanding what drives mortality across the world is essential for
+          improving public health outcomes.
         </p>
       </div>
 
-      {/* GLOBAL RISK */}
       <div className="card">
-        <h2>Top 10 Mortality Risk Factors</h2>
+        <h2>Top (10) Mortality Risk Factors</h2>
 
         <ResponsiveContainer
           width="100%"
@@ -286,31 +275,31 @@ const Home = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* INSIGHT */}
       <div className="card">
         <h2>Mortality Risk Breakdown</h2>
         <MortalityInsightCard />
       </div>
 
-      {/* GLOBAL TRENDS */}
       <div className="card">
-        <h2>Global Risk Factor Trends</h2>
-        <div className="grid-mini">
-          {metrics.map((m) => (
-            <RiskLineChart
-              key={m.key}
-              title={m.title}
-              dataKey={m.key}
-              color={m.color}
-              data={trendData}
-            />
-          ))}
+        <h2>Global Risk Factor + Death Trends</h2>
+
+        <div className="trend-section">
+          <div className="grid-mini">
+            {metrics.map((m) => (
+              <RiskLineChart
+                key={m.key}
+                title={m.title}
+                dataKey={m.key}
+                color={m.color}
+                data={trendData}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* COUNTRY */}
       <div className="card">
-        <h2>Country Trends</h2>
+        <h2>Country Risk Factor + Deaths Trends</h2>
 
         <select
           value={selectedCountry}
@@ -323,7 +312,6 @@ const Home = () => {
         <CountryTrendPanel data={selectedData} />
       </div>
 
-      {/* FOOTER (NOT OMITTED) */}
       <footer className="footer">
         <p>© 2026 Global Health Dashboard</p>
       </footer>
