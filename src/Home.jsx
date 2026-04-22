@@ -42,19 +42,19 @@ const RiskLineChart = ({ title, dataKey, color, data = [] }) => {
 
       <ResponsiveContainer
         width="100%"
-        height={isMobile ? 120 : 150}>
+        height={isMobile ? 150 : 180}>
         <LineChart data={data}>
           <XAxis
             dataKey="Year"
             type="number"
             domain={[1990, 2020]}
-            tick={{ fontSize: 10 }}
+            tick={{ fontSize: isMobile ? 11 : 12 }}
           />
           <YAxis
-            tick={{ fontSize: 10 }}
-            width={45}
+            tick={{ fontSize: isMobile ? 11 : 12 }}
+            width={isMobile ? 50 : 50}
           />
-          <Tooltip />
+          <Tooltip contentStyle={{ fontSize: 12 }} />
 
           <Line
             type="monotone"
@@ -62,7 +62,7 @@ const RiskLineChart = ({ title, dataKey, color, data = [] }) => {
             stroke={color}
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 5 }}
+            activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -158,6 +158,9 @@ const Home = () => {
   const [trendData, setTrendData] = useState([]);
   const [countryTrends, setCountryTrends] = useState({});
   const [selectedCountry, setSelectedCountry] = useState("United States");
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768,
+  );
 
   const COLORS = [
     "#6366F1",
@@ -171,6 +174,15 @@ const Home = () => {
     "#84CC16",
     "#F97316",
   ];
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     setRiskData([
@@ -235,11 +247,15 @@ const Home = () => {
         <h1>Global Mortality Risk Factors</h1>
         <p>Health analytics (1990 - 2020)</p>
       </header>
-
       <div className="intro">
+        <h3>Introduction</h3>
+        <br />
         <p>
-          Understanding what drives mortality across the world is essential for
-          improving public health outcomes.
+          Helalth and wellness remains a critical focus in global development,
+          with mortality risk factors playing a key role in shaping public
+          health strategies. This dashboard provides an in-depth analysis of the
+          top mortality risk factors worldwide, trends over time, and
+          country-specific insights.
         </p>
       </div>
 
@@ -247,19 +263,28 @@ const Home = () => {
         <h2>Top (10) Mortality Risk Factors</h2>
 
         <ResponsiveContainer
+          className="bar-chart-content"
           width="100%"
-          height={350}>
+          height={isMobile ? 500 : 350}>
           <BarChart
             data={sortedRisk}
             layout="vertical"
-            margin={{ left: 130 }}>
-            <XAxis type="number" />
+            margin={
+              isMobile
+                ? { left: 90, right: 15, top: 10, bottom: 10 }
+                : { left: 130, right: 20 }
+            }>
+            <XAxis
+              type="number"
+              tick={{ fontSize: isMobile ? 12 : 12 }}
+            />
             <YAxis
               type="category"
               dataKey="risk"
-              width={200}
+              width={isMobile ? 85 : 200}
+              tick={{ fontSize: isMobile ? 12 : 12 }}
             />
-            <Tooltip />
+            <Tooltip contentStyle={{ fontSize: 13 }} />
 
             <Bar
               dataKey="value"
@@ -281,7 +306,7 @@ const Home = () => {
       </div>
 
       <div className="card">
-        <h2>Global Risk Factor + Death Trends</h2>
+        <h2>Global Risk Factor + Fatality Trends</h2>
 
         <div className="trend-section">
           <div className="grid-mini">
@@ -299,7 +324,7 @@ const Home = () => {
       </div>
 
       <div className="card">
-        <h2>Country Risk Factor + Deaths Trends</h2>
+        <h2>Country Risk Factor + Fatality Trends</h2>
 
         <select
           value={selectedCountry}
