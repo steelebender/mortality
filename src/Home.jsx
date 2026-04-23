@@ -306,7 +306,7 @@ const Home = () => {
       </div>
 
       <div className="card">
-        <h2>Global Risk Factor + Fatality Trends</h2>
+        <h2>Global Risk Factor + Mortality Trends</h2>
 
         <div className="trend-section">
           <div className="grid-mini">
@@ -324,7 +324,7 @@ const Home = () => {
       </div>
 
       <div className="card">
-        <h2>Country Risk Factor + Fatality Trends</h2>
+        <h2>Country Risk Factor + Mortality Trends</h2>
 
         <select
           value={selectedCountry}
@@ -339,6 +339,7 @@ const Home = () => {
 
       <footer className="footer">
         <p>© 2026 Global Health Dashboard</p>
+        <p>Steele Bender</p>
       </footer>
     </div>
   );
